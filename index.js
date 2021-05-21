@@ -6,8 +6,11 @@ const { Sequelize } = require('sequelize');
 
 const config = require('./env.json');
 const pkg = require('./package.json');
-const { Database } = require('./services');
+const { Database, cacheWriteDatabase } = require('./services');
 const { FragmentMiddleware } = require('./middlewares');
+
+// 日志缓存
+const cache = {};
 
 async function main() {
   const conn = new Sequelize({
@@ -39,6 +42,7 @@ async function main() {
   const app = new Koa();
   const router = new Router();
 
+  app.context.cache = cache;
   app.context.conn = conn;
 
   // 跨域配置
@@ -56,6 +60,11 @@ async function main() {
 
   app.use(router.routes());
   app.use(router.allowedMethods());
+
+  // 每分钟写数据库
+  setInterval(() => {
+    cacheWriteDatabase(app.context);
+  }, 60 * 1000);
 
   const port = pkg.port || 3000;
   app.listen(port);
