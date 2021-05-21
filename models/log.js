@@ -16,7 +16,7 @@ module.exports = (conn) => {
       // referer
       referer: DataTypes.STRING,
       // time，因为先写入文件或缓存，所以这里不用updatedAt和createdAt
-      time: DataTypes.STRING(20),
+      time: DataTypes.STRING(15),
     },
     {
       createdAt: false,
