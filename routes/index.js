@@ -1,3 +1,3 @@
 module.exports = (router) => {
-  router.use('/log', require('./log'));
+  router.use(require('./log'));
 };
