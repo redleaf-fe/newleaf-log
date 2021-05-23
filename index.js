@@ -6,7 +6,7 @@ const { Sequelize } = require('sequelize');
 
 const config = require('./env.json');
 const pkg = require('./package.json');
-const { Database, cacheWriteDatabase } = require('./services');
+const { cacheWriteDatabase } = require('./services');
 const { FragmentMiddleware } = require('./middlewares');
 
 // 日志缓存
@@ -30,13 +30,6 @@ async function main() {
     console.log('数据库连接成功');
   } catch (error) {
     console.error('数据库连接失败：', error);
-  }
-
-  try {
-    await Database.initDatabase(conn);
-    console.log('数据库初始化成功');
-  } catch (error) {
-    console.error('数据库初始化失败：', error);
   }
 
   const app = new Koa();
