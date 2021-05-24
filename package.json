@@ -1,7 +1,6 @@
 {
   "name": "newleaf-log",
   "version": "0.0.1",
-  "port": 3013,
   "license": "MIT",
   "main": "index.js",
   "scripts": {

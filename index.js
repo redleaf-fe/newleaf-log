@@ -5,7 +5,6 @@ const BodyParser = require('koa-body');
 const { Sequelize } = require('sequelize');
 
 const config = require('./env.json');
-const pkg = require('./package.json');
 const { cacheWriteDatabase } = require('./services');
 const { FragmentMiddleware } = require('./middlewares');
 
@@ -59,7 +58,7 @@ async function main() {
     cacheWriteDatabase(app.context);
   }, 60 * 1000);
 
-  const port = pkg.port || 3000;
+  const port = config.serverPort || 3000;
   app.listen(port);
 }
 
