@@ -17,8 +17,8 @@ module.exports = async function (ctx) {
             content: DataTypes.STRING,
             // 来源
             ip: DataTypes.STRING(50),
-            // referer
             referer: DataTypes.STRING,
+            ua: DataTypes.STRING,
             // time，因为先写入文件或缓存，所以这里不用updatedAt和createdAt
             time: DataTypes.STRING(15),
           },

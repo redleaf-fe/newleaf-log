@@ -9,6 +9,7 @@ router.register(['/log'], ['GET', 'POST'], async (ctx) => {
   const param = {
     ip: headers['x-forwarded-for'] || socket.remoteAddress,
     referer: headers['referer'] || '',
+    ua: headers['user-agent'] || '',
     time,
   };
 
