@@ -43,7 +43,11 @@ async function main() {
     ctx.set('Access-Control-Allow-Headers', 'content-type');
     await next();
   });
-  app.use(Logger());
+
+  if(config.dev){
+    app.use(Logger());
+  }
+  
   app.use(BodyParser());
 
   app.use(FragmentMiddleware);
