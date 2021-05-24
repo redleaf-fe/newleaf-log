@@ -40,4 +40,18 @@ router.register(['/log'], ['GET', 'POST'], async (ctx) => {
   ctx.body = 'ok';
 });
 
+router.get('/get', async (ctx) => {
+  const { query } = ctx.request;
+  const { datetime, appId } = query || {};
+
+  const tableName = `log_${appId}`;
+
+  if (ctx.conn.models[tableName]) {
+    const res = await ctx.conn.models[tableName].findAll();
+    ctx.body = res;
+  } else {
+    ctx.body = JSON.stringify({ message: '日志尚未初始化', errCode: 1001 });
+  }
+});
+
 module.exports = router.routes();
