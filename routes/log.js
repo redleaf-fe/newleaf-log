@@ -1,5 +1,8 @@
 const Router = require('koa-router');
 const querystring = require('querystring');
+const { Op, fn } = require('sequelize');
+const createLog = require('../services/createLog');
+
 const router = new Router();
 
 router.register(['/log'], ['GET', 'POST'], async (ctx) => {
@@ -42,16 +45,24 @@ router.register(['/log'], ['GET', 'POST'], async (ctx) => {
 
 router.get('/get', async (ctx) => {
   const { query } = ctx.request;
-  const { datetime, appId } = query || {};
+  const { datetime = '', currentPage = 1, pageSize = 10, appId } = query || {};
+
+  if (!appId) {
+    ctx.body = JSON.stringify({ message: '缺少AppId' });
+    return;
+  }
 
   const tableName = `log_${appId}`;
 
-  if (ctx.conn.models[tableName]) {
-    const res = await ctx.conn.models[tableName].findAll();
-    ctx.body = res;
-  } else {
-    ctx.body = JSON.stringify({ message: '日志尚未初始化', errCode: 1001 });
+  if (!ctx.conn.models[tableName]) {
+    await createLog(ctx.conn, tableName);
   }
+
+  const res = await ctx.conn.models[tableName].findAndCountAll({
+    offset: pageSize * (currentPage - 1),
+    limit: pageSize,
+  });
+  ctx.body = res;
 });
 
 module.exports = router.routes();
