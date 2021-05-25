@@ -5,7 +5,7 @@ const BodyParser = require('koa-body');
 const { Sequelize } = require('sequelize');
 
 const config = require('./env.json');
-const { cacheWriteDatabase } = require('./services');
+const cacheWriteDatabase = require('./services/cacheWriteDatabase');
 const { FragmentMiddleware } = require('./middlewares');
 
 // 日志缓存
