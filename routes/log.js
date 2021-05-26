@@ -50,6 +50,7 @@ router.get('/get', async (ctx) => {
     endTime = '',
     currentPage = 1,
     pageSize = 10,
+    like = '',
     appId,
   } = query || {};
 
@@ -64,16 +65,26 @@ router.get('/get', async (ctx) => {
     await createLog(ctx.conn, tableName);
   }
 
-  const filter = {
-    time: {
-      [Op.and]: {},
-    },
-  };
+  const timeFilter = {};
   if (startTime) {
-    filter.time[Op.and][Op.gte] = startTime;
+    timeFilter[Op.gte] = startTime;
   }
   if (endTime) {
-    filter.time[Op.and][Op.lte] = endTime;
+    timeFilter[Op.lte] = endTime;
+  }
+
+  const filter = {
+    [Op.and]: [
+      {
+        time: {
+          [Op.and]: timeFilter,
+        },
+      },
+    ],
+  };
+
+  if (like) {
+    filter[Op.and].push({ content: { [Op.like]: `%${like}%` } });
   }
 
   const res = await ctx.conn.models[tableName].findAndCountAll({
