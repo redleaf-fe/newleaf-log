@@ -1,6 +1,6 @@
 const Router = require('koa-router');
 const querystring = require('querystring');
-const { Op, fn } = require('sequelize');
+const { Op } = require('sequelize');
 const createLog = require('../services/createLog');
 
 const router = new Router();
@@ -45,7 +45,13 @@ router.register(['/log'], ['GET', 'POST'], async (ctx) => {
 
 router.get('/get', async (ctx) => {
   const { query } = ctx.request;
-  const { datetime = '', currentPage = 1, pageSize = 10, appId } = query || {};
+  const {
+    startTime = '',
+    endTime = '',
+    currentPage = 1,
+    pageSize = 10,
+    appId,
+  } = query || {};
 
   if (!appId) {
     ctx.body = JSON.stringify({ message: '缺少AppId' });
@@ -58,7 +64,20 @@ router.get('/get', async (ctx) => {
     await createLog(ctx.conn, tableName);
   }
 
+  const filter = {
+    time: {
+      [Op.and]: {},
+    },
+  };
+  if (startTime) {
+    filter.time[Op.and][Op.gte] = startTime;
+  }
+  if (endTime) {
+    filter.time[Op.and][Op.lte] = endTime;
+  }
+
   const res = await ctx.conn.models[tableName].findAndCountAll({
+    where: filter,
     offset: pageSize * (currentPage - 1),
     limit: pageSize,
   });
