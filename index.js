@@ -6,7 +6,6 @@ const { Sequelize } = require('sequelize');
 
 const config = require('./env.json');
 const cacheWriteDatabase = require('./services/cacheWriteDatabase');
-const { FragmentMiddleware } = require('./middlewares');
 
 // 日志缓存
 const cache = {};
@@ -50,8 +49,6 @@ async function main() {
   
   app.use(BodyParser());
 
-  app.use(FragmentMiddleware);
-
   require('./routes')(router);
 
   app.use(router.routes());
@@ -60,7 +57,7 @@ async function main() {
   // 每分钟写数据库
   setInterval(() => {
     cacheWriteDatabase(app.context);
-  }, 60 * 1000);
+  }, config.writeInterval);
 
   const port = config.serverPort || 3000;
   app.listen(port);
