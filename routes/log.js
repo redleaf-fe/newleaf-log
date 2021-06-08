@@ -16,23 +16,27 @@ router.register(['/log'], ['GET', 'POST'], async (ctx) => {
     time,
   };
 
-  let appId, content;
+  let appId, content, type;
 
   if ('GET' === method.toUpperCase()) {
     appId = query.appId;
     content = query.content;
+    type = query.type;
   } else if ('POST' === method.toUpperCase()) {
     if (headers['content-type'].includes('text/plain')) {
       const _body = querystring.parse(body);
       appId = _body.appId;
       content = _body.content;
+      type = _body.type;
     } else if (headers['content-type'].includes('application/json')) {
       appId = body.appId;
       content = body.content;
+      type = body.type;
     }
   }
 
   param.content = content;
+  param.type = type;
 
   if (ctx.cache[`${appId}`]) {
     ctx.cache[`${appId}`].push(param);
@@ -51,6 +55,7 @@ router.get('/get', async (ctx) => {
     currentPage = 1,
     pageSize = 10,
     like = '',
+    type = '',
     appId,
   } = query || {};
 
@@ -85,6 +90,10 @@ router.get('/get', async (ctx) => {
 
   if (like) {
     filter[Op.and].push({ content: { [Op.like]: `%${like}%` } });
+  }
+
+  if (type) {
+    filter[Op.and].push({ type: { [Op.eq]: type } });
   }
 
   const res = await ctx.conn.models[tableName].findAndCountAll({
