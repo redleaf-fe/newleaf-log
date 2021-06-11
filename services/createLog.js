@@ -13,7 +13,7 @@ module.exports = async function (conn, tableName) {
       // 日志类型：log、error、perf、visit、route
       type: DataTypes.STRING(10),
       // time，因为先写入文件或缓存，所以这里不用updatedAt和createdAt
-      time: DataTypes.STRING(15),
+      time: DataTypes.STRING(30),
     },
     {
       createdAt: false,
