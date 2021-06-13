@@ -13,10 +13,8 @@ module.exports = async function (ctx) {
         await createLog(conn, tableName);
       }
 
-      const promise = await conn.models[tableName].bulkCreate(cache[v]);
+      await conn.models[tableName].bulkCreate(cache[v]);
       delete ctx.cache[v];
-
-      return promise;
     })
   );
 };

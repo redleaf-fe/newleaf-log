@@ -10,8 +10,11 @@ module.exports = async function (conn, tableName) {
       ip: DataTypes.STRING(50),
       referer: DataTypes.STRING,
       ua: DataTypes.STRING,
-      // 日志类型：log、error、perf、visit、route
-      type: DataTypes.STRING(10),
+      // 日志类型
+      type: {
+        type: DataTypes.ENUM,
+        values: ['log', 'error', 'perf', 'visit', 'route'],
+      },
       // time，因为先写入文件或缓存，所以这里不用updatedAt和createdAt
       time: DataTypes.STRING(30),
     },
