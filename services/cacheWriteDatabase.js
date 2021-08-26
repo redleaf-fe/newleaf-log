@@ -12,11 +12,16 @@ module.exports = async function (ctx) {
       const logKey = appLogKey(v);
       const data = await redis.smembersAsync(logKey);
 
+      if(!data.length){
+        return;
+      }
+
       if (!conn.models[tableName]) {
         await createLog(conn, tableName);
       }
 
       await conn.models[tableName].bulkCreate(data.map(v => JSON.parse(v)));
+      await redis.sremAsync(logKey, ...data);
     })
   );
 };
