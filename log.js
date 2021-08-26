@@ -1,7 +1,9 @@
 const Router = require('koa-router');
 const querystring = require('querystring');
 const { Op } = require('sequelize');
-const createLog = require('../services/createLog');
+
+const createLog = require('./services/createLog');
+const { appsKey, appLogKey } = require('./redisKey');
 
 const router = new Router();
 
@@ -40,10 +42,17 @@ router.register(['/log'], ['GET', 'POST'], async (ctx) => {
   param.type = type;
   param.time = time;
 
-  if (ctx.cache[`${appId}`]) {
-    ctx.cache[`${appId}`].push(param);
+  const isMem = await ctx.redis.sismemberAsync(appsKey, appId);
+
+  if (!isMem) {
+    await ctx.redis.saddAsync(appsKey, appId);
+  }
+
+  if (await ctx.redis.existsAsync(appLogKey(appId))) {
+    await ctx.redis.saddAsync(appLogKey(appId), JSON.stringify(param));
   } else {
-    ctx.cache[`${appId}`] = [param];
+    await ctx.redis.saddAsync(appLogKey(appId), JSON.stringify(param));
+    ctx.redis.expire(appLogKey(appId), 86400 * 3);
   }
 
   ctx.body = 'ok';
@@ -101,8 +110,8 @@ router.get('/get', async (ctx) => {
   const res = await ctx.conn.models[tableName].findAndCountAll({
     where: filter,
     offset: pageSize * (currentPage - 1),
-    limit: pageSize,
-    order: ['time']
+    limit: Number(pageSize),
+    order: ['time'],
   });
   ctx.body = res;
 });

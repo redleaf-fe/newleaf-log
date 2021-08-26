@@ -3,12 +3,11 @@ const Router = require('koa-router');
 const Logger = require('koa-logger');
 const BodyParser = require('koa-body');
 const { Sequelize } = require('sequelize');
+const redis = require("redis");
+const { promisify } = require('util');
 
 const config = require('./env.json');
 const cacheWriteDatabase = require('./services/cacheWriteDatabase');
-
-// 日志缓存
-const cache = {};
 
 async function main() {
   const conn = new Sequelize({
@@ -30,10 +29,16 @@ async function main() {
     console.error('数据库连接失败：', error);
   }
 
+  const client = redis.createClient({
+    host: config.redisHost,
+    port: config.redisPort,
+  });
+  redisPromisify(client);
+
   const app = new Koa();
   const router = new Router();
 
-  app.context.cache = cache;
+  app.context.redis = client;
   app.context.conn = conn;
 
   // 跨域配置
@@ -49,18 +54,34 @@ async function main() {
   
   app.use(BodyParser());
 
-  require('./routes')(router);
-
+  router.use(require('./log'));
   app.use(router.routes());
   app.use(router.allowedMethods());
 
-  // 每分钟写数据库
-  setInterval(() => {
-    cacheWriteDatabase(app.context);
-  }, config.writeInterval);
-
   const port = config.serverPort || 3000;
   app.listen(port);
+
+  setInterval(() => {
+    cacheWriteDatabase(app.context);
+  }, config.writeInterval || 60000);
 }
 
 main();
+
+function redisPromisify(client) {
+  [
+    // 
+    'ttl', 'exists', 'del', 'expire',
+    // string
+    'get', 'set', 'mget', 'getset',
+    // list
+    'lpush', 'lpop', 'lindex', 'lrange', 'llen', 'lrem', 'rpush', 'rpop',
+    // set
+    'sadd', 'scard', 'smembers', 'sismember', 'srem',
+    // hash
+    'hset', 'hget', 'hgetall', 'hdel', 'hexists', 'hkeys', 'hvals', 'hlen', 'hmget', 'hmset'
+  ]
+  .forEach(v=>{
+    client[`${v}Async`] = promisify(client[v]).bind(client);
+  });
+}

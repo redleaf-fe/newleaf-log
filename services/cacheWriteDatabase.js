@@ -1,20 +1,22 @@
 const createLog = require('./createLog');
+const {appsKey, appLogKey} = require("../redisKey");
 
 module.exports = async function (ctx) {
-  const { conn, cache } = ctx;
+  const { conn, redis } = ctx;
 
-  const apps = Object.keys(cache);
+  const apps = await redis.smembersAsync(appsKey);
 
   await Promise.all(
     apps.map(async (v) => {
       const tableName = `log_${v}`;
+      const logKey = appLogKey(v);
+      const data = await redis.smembersAsync(logKey);
 
       if (!conn.models[tableName]) {
         await createLog(conn, tableName);
       }
 
-      await conn.models[tableName].bulkCreate(cache[v]);
-      delete ctx.cache[v];
+      await conn.models[tableName].bulkCreate(data.map(v => JSON.parse(v)));
     })
   );
 };
