@@ -111,7 +111,7 @@ router.get('/get', async (ctx) => {
     where: filter,
     offset: pageSize * (currentPage - 1),
     limit: Number(pageSize),
-    order: ['time'],
+    order: [['time', 'DESC']],
   });
   ctx.body = res;
 });

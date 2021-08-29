@@ -17,6 +17,7 @@ async function main() {
     password: config.databasePassword,
     port: config.databasePort,
     database: config.databaseName,
+    logging: config.dev,
     define: {
       freezeTableName: true,
     },
